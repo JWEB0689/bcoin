@@ -82,6 +82,32 @@ describe('Script', function() {
     assert(decoded.isNulldata());
   });
 
+  it('should discourage ordinal envelopes', () => {
+    const script = new Script([
+      Opcode.fromInt(0),
+      Opcode.fromSymbol('if'),
+      Opcode.fromInt(1),
+      Opcode.fromSymbol('endif')
+    ]);
+
+    const stack = new Stack();
+
+    assert.throws(() => {
+      script.execute(stack);
+    }, /DISCOURAGE_UPGRADABLE_NOPS/);
+
+    script.execute(new Stack(), Script.flags.VERIFY_NONE);
+
+    const nonOrdinal = new Script([
+      Opcode.fromInt(0),
+      Opcode.fromSymbol('notif'),
+      Opcode.fromInt(1),
+      Opcode.fromSymbol('endif')
+    ]);
+
+    nonOrdinal.execute(new Stack());
+  });
+
   it('should handle if statements correctly', () => {
     {
       const input = new Script([
